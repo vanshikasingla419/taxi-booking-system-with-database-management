@@ -6,6 +6,7 @@
 
 ## **1. Introduction**
 
+
 ### **1.1 Purpose**
 This SRS document outlines the functional and non-functional requirements for the **Taxi Management System**.  
 The system is designed as a Mini-DBMS project to demonstrate **Create, Read, Update, Delete (CRUD)** operations using **MySQL** and help manage taxis, drivers, bookings, and payments efficiently.
