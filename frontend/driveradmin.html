@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Driver Management</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+
+    <body class="bg-gray-100 min-h-screen p-6">
+        <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow">
+            <h2 class="text-3xl font-bold mb-6 text-center">
+                Driver Management
+            </h2>
+
+            <p
+                id="msg"
+                class="text-center text-lg font-semibold mb-6 hidden"
+            ></p>
+
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-3">Add Driver</h3>
+                <form
+                    id="addDriverForm"
+                    class="grid grid-cols-1 md:grid-cols-3 gap-4"
+                >
+                    <input
+                        id="dName"
+                        placeholder="Name"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <input
+                        id="dPhone"
+                        placeholder="Phone"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <input
+                        id="dTaxi"
+                        type="number"
+                        placeholder="Taxi ID"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <button
+                        class="bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700"
+                    >
+                        Add
+                    </button>
+                </form>
+            </div>
+
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-3">Update Driver</h3>
+                <form
+                    id="updateDriverForm"
+                    class="grid grid-cols-1 md:grid-cols-4 gap-4"
+                >
+                    <input
+                        id="udId"
+                        type="number"
+                        placeholder="Driver ID"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <input
+                        id="udName"
+                        placeholder="Name"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <input
+                        id="udPhone"
+                        placeholder="Phone"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <input
+                        id="udTaxi"
+                        type="number"
+                        placeholder="Taxi ID"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <button
+                        class="bg-yellow-600 text-white rounded px-3 py-2 hover:bg-yellow-700"
+                    >
+                        Update
+                    </button>
+                </form>
+            </div>
+
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-3">Delete Driver</h3>
+                <form id="deleteDriverForm" class="flex gap-3">
+                    <input
+                        id="delDriver"
+                        type="number"
+                        placeholder="Driver ID"
+                        class="border p-2 rounded w-full"
+                        required
+                    />
+                    <button
+                        class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    >
+                        Delete
+                    </button>
+                </form>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-3">All Drivers</h3>
+            <div id="driverList" class="space-y-3"></div>
+        </div>
+
+        <script>
+            const API = window.location.origin;
+            const token = localStorage.getItem("admin_token");
+
+            function showMessage(msg, color = "text-green-600") {
+                const m = document.getElementById("msg");
+                m.innerText = msg;
+                m.className = `text-center text-lg font-semibold mb-6 ${color}`;
+                m.classList.remove("hidden");
+                setTimeout(() => m.classList.add("hidden"), 2500);
+            }
+
+            async function verifyAdmin() {
+                if (!token) {
+                    window.location.href = "admin_login.html";
+                    return;
+                }
+                const res = await fetch(`${API}/admin/verify`, {
+                    headers: { token },
+                });
+                if (!res.ok) {
+                    localStorage.removeItem("admin_token");
+                    window.location.href = "admin_login.html";
+                }
+            }
+            verifyAdmin();
+
+            async function loadDrivers() {
+                const res = await fetch(`${API}/admin/driver/all`, {
+                    headers: { token },
+                });
+                const drivers = await res.json();
+                document.getElementById("driverList").innerHTML = drivers
+                    .map(
+                        (d) => `
+                    <div class="p-4 bg-gray-100 rounded shadow">
+                        <p><b>ID:</b> ${d.driver_id}</p>
+                        <p><b>Name:</b> ${d.name}</p>
+                        <p><b>Phone:</b> ${d.phone}</p>
+                        <p><b>Taxi Assigned:</b> ${d.taxi_id}</p>
+                    </div>
+                `,
+                    )
+                    .join("");
+            }
+            loadDrivers();
+
+            document.getElementById("addDriverForm").onsubmit = async (e) => {
+                e.preventDefault();
+                const payload = {
+                    name: dName.value.trim(),
+                    phone: dPhone.value.trim(),
+                    taxi_id: Number(dTaxi.value),
+                };
+                const res = await fetch(`${API}/admin/driver/add`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", token },
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (res.ok) showMessage("Driver added successfully");
+                else showMessage(data.detail, "text-red-600");
+                loadDrivers();
+            };
+
+            document.getElementById("updateDriverForm").onsubmit = async (
+                e,
+            ) => {
+                e.preventDefault();
+                const payload = {
+                    name: udName.value.trim(),
+                    phone: udPhone.value.trim(),
+                    taxi_id: Number(udTaxi.value),
+                };
+                const res = await fetch(
+                    `${API}/admin/driver/update/${udId.value}`,
+                    {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json", token },
+                        body: JSON.stringify(payload),
+                    },
+                );
+                const data = await res.json();
+                if (res.ok) showMessage("Driver updated successfully");
+                else showMessage(data.detail, "text-red-600");
+                loadDrivers();
+            };
+
+            document.getElementById("deleteDriverForm").onsubmit = async (
+                e,
+            ) => {
+                e.preventDefault();
+                const res = await fetch(
+                    `${API}/admin/driver/delete/${delDriver.value}`,
+                    {
+                        method: "DELETE",
+                        headers: { token },
+                    },
+                );
+                const data = await res.json();
+                if (res.ok) showMessage("Driver deleted");
+                else showMessage(data.detail, "text-red-600");
+                loadDrivers();
+            };
+        </script>
+    </body>
+</html>

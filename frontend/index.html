@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taxi Management Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-900">
+  <div class="max-w-7xl mx-auto px-4 py-6">
+    <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-3xl font-bold">Taxi Management Portal</h1>
+        <p class="text-slate-600 mt-1">Use a single page for user and admin access.</p>
+      </div>
+      <div class="flex gap-2">
+        <button id="userTabBtn" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition">User</button>
+        <button id="adminTabBtn" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-700 font-semibold shadow hover:bg-slate-300 transition">Admin</button>
+      </div>
+    </header>
+
+    <div id="messageBox" class="hidden mb-4 rounded-xl p-4 text-sm"></div>
+
+    <section id="userSection" class="space-y-6">
+      <div class="bg-white rounded-3xl shadow-lg p-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-2xl font-bold">User Portal</h2>
+            <p class="text-slate-500">Register, login, and book a taxi from one page.</p>
+          </div>
+          <div class="flex gap-2">
+            <button id="showLoginBtn" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-800 font-semibold hover:bg-slate-200 transition">Login</button>
+            <button id="showRegisterBtn" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">Register</button>
+          </div>
+        </div>
+
+        <div id="userAuthSection" class="space-y-6">
+          <div id="userLoginCard" class="space-y-4">
+            <p class="text-slate-600">Login with email or phone and password.</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <input id="loginUsername" placeholder="Email or Phone" class="w-full rounded-2xl border border-slate-200 p-4" />
+              <input id="loginPassword" type="password" placeholder="Password" class="w-full rounded-2xl border border-slate-200 p-4" />
+            </div>
+            <button id="loginUserBtn" class="w-full rounded-2xl bg-blue-600 text-white py-3 font-semibold hover:bg-blue-700 transition">Login</button>
+          </div>
+
+          <div id="userRegisterCard" class="space-y-4 hidden">
+            <p class="text-slate-600">Create a new account and get started.</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <input id="registerName" placeholder="Full Name" class="w-full rounded-2xl border border-slate-200 p-4" />
+              <input id="registerPhone" placeholder="Phone Number" class="w-full rounded-2xl border border-slate-200 p-4" />
+              <input id="registerEmail" type="email" placeholder="Email" class="w-full rounded-2xl border border-slate-200 p-4 sm:col-span-2" />
+              <input id="registerPassword" type="password" placeholder="Password" class="w-full rounded-2xl border border-slate-200 p-4 sm:col-span-2" />
+            </div>
+            <button id="registerUserBtn" class="w-full rounded-2xl bg-emerald-600 text-white py-3 font-semibold hover:bg-emerald-700 transition">Register</button>
+          </div>
+        </div>
+
+        <div id="userDashboard" class="hidden space-y-6">
+          <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p class="text-slate-500">Logged in as</p>
+                <p id="userWelcome" class="text-xl font-semibold"></p>
+                <p id="userEmail" class="text-slate-500"></p>
+              </div>
+              <button id="logoutUserBtn" class="rounded-2xl bg-red-600 text-white px-5 py-3 font-semibold hover:bg-red-700 transition">Logout</button>
+            </div>
+          </div>
+
+          <div class="rounded-3xl border border-slate-200 bg-white p-6">
+            <h3 class="text-xl font-semibold mb-4">Book a Taxi</h3>
+            <div class="grid gap-4 md:grid-cols-2">
+              <input id="sourceInput" placeholder="Pickup Location" class="w-full rounded-2xl border border-slate-200 p-4" />
+              <input id="destinationInput" placeholder="Dropoff Location" class="w-full rounded-2xl border border-slate-200 p-4" />
+              <input id="distanceInput" type="number" min="0" placeholder="Distance (km)" class="w-full rounded-2xl border border-slate-200 p-4" />
+              <select id="taxiSelect" class="w-full rounded-2xl border border-slate-200 p-4 bg-white"></select>
+            </div>
+            <button id="bookTaxiBtn" class="mt-4 w-full rounded-2xl bg-indigo-600 text-white py-3 font-semibold hover:bg-indigo-700 transition">Book Taxi</button>
+          </div>
+
+          <div class="rounded-3xl border border-slate-200 bg-white p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-semibold">Your Recent Bookings</h3>
+              <button id="refreshBookingsBtn" class="text-blue-600 hover:underline">Refresh</button>
+            </div>
+            <div id="userBookingsList" class="space-y-4 text-slate-700">Loading bookings...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="adminSection" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl shadow-lg p-6">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-2xl font-bold">Admin Portal</h2>
+            <p class="text-slate-500">Admin login and management tools.</p>
+          </div>
+          <button id="refreshAdminBtn" class="rounded-2xl bg-slate-100 px-4 py-2 text-slate-700 font-semibold hover:bg-slate-200 transition">Reload</button>
+        </div>
+
+        <div id="adminAuthSection" class="space-y-4">
+          <p class="text-slate-600">Enter admin credentials to manage taxis and drivers.</p>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <input id="adminUsername" placeholder="Admin Username" class="w-full rounded-2xl border border-slate-200 p-4" />
+            <input id="adminPassword" type="password" placeholder="Admin Password" class="w-full rounded-2xl border border-slate-200 p-4" />
+          </div>
+          <button id="adminLoginBtn" class="w-full rounded-2xl bg-slate-800 text-white py-3 font-semibold hover:bg-slate-900 transition">Admin Login</button>
+        </div>
+
+        <div id="adminDashboard" class="hidden space-y-6">
+          <div class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p class="text-slate-500">Admin mode enabled</p>
+                <p class="text-xl font-semibold">Manage fleet and bookings</p>
+              </div>
+              <button id="logoutAdminBtn" class="rounded-2xl bg-red-600 text-white px-5 py-3 font-semibold hover:bg-red-700 transition">Logout</button>
+            </div>
+          </div>
+
+          <div class="grid gap-6 lg:grid-cols-2">
+            <div class="rounded-3xl border border-slate-200 bg-white p-6">
+              <h3 class="text-xl font-semibold mb-4">Add a Taxi</h3>
+              <div class="grid gap-4">
+                <input id="taxiModel" placeholder="Model" class="w-full rounded-2xl border border-slate-200 p-4" />
+                <input id="taxiCapacity" type="number" min="1" placeholder="Capacity" class="w-full rounded-2xl border border-slate-200 p-4" />
+                <select id="taxiStatus" class="w-full rounded-2xl border border-slate-200 p-4 bg-white">
+                  <option value="available">available</option>
+                  <option value="unavailable">unavailable</option>
+                </select>
+                <button id="addTaxiBtn" class="w-full rounded-2xl bg-blue-600 text-white py-3 font-semibold hover:bg-blue-700 transition">Add Taxi</button>
+              </div>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200 bg-white p-6">
+              <h3 class="text-xl font-semibold mb-4">Add a Driver</h3>
+              <div class="grid gap-4">
+                <input id="driverName" placeholder="Driver Name" class="w-full rounded-2xl border border-slate-200 p-4" />
+                <input id="driverPhone" placeholder="Phone Number" class="w-full rounded-2xl border border-slate-200 p-4" />
+                <input id="driverTaxiId" type="number" min="1" placeholder="Taxi ID" class="w-full rounded-2xl border border-slate-200 p-4" />
+                <button id="addDriverBtn" class="w-full rounded-2xl bg-green-600 text-white py-3 font-semibold hover:bg-green-700 transition">Add Driver</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid gap-6">
+            <div class="rounded-3xl border border-slate-200 bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Taxis</h3>
+                <button id="loadAllTaxisBtn" class="text-blue-600 hover:underline">Refresh</button>
+              </div>
+              <div id="adminTaxiList" class="space-y-4 text-slate-700">Loading taxis...</div>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200 bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Drivers</h3>
+                <button id="loadAllDriversBtn" class="text-blue-600 hover:underline">Refresh</button>
+              </div>
+              <div id="adminDriverList" class="space-y-4 text-slate-700">Loading drivers...</div>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200 bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Completed Bookings</h3>
+                <button id="loadCompletedBookingsBtn" class="text-blue-600 hover:underline">Refresh</button>
+              </div>
+              <div id="adminCompletedList" class="space-y-4 text-slate-700">Loading completed bookings...</div>
+            </div>
+
+            <div class="rounded-3xl border border-slate-200 bg-white p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-semibold">Pending Bookings</h3>
+                <button id="loadPendingBookingsBtn" class="text-blue-600 hover:underline">Refresh</button>
+              </div>
+              <div id="adminPendingList" class="space-y-4 text-slate-700">Loading pending bookings...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const API = window.location.origin;
+    const messageBox = document.getElementById('messageBox');
+
+    const userTabBtn = document.getElementById('userTabBtn');
+    const adminTabBtn = document.getElementById('adminTabBtn');
+    const userSection = document.getElementById('userSection');
+    const adminSection = document.getElementById('adminSection');
+
+    const userAuthSection = document.getElementById('userAuthSection');
+    const userDashboard = document.getElementById('userDashboard');
+    const userLoginCard = document.getElementById('userLoginCard');
+    const userRegisterCard = document.getElementById('userRegisterCard');
+
+    const adminAuthSection = document.getElementById('adminAuthSection');
+    const adminDashboard = document.getElementById('adminDashboard');
+
+    const showLoginBtn = document.getElementById('showLoginBtn');
+    const showRegisterBtn = document.getElementById('showRegisterBtn');
+
+    const loginUserBtn = document.getElementById('loginUserBtn');
+    const registerUserBtn = document.getElementById('registerUserBtn');
+    const logoutUserBtn = document.getElementById('logoutUserBtn');
+    const refreshBookingsBtn = document.getElementById('refreshBookingsBtn');
+    const bookTaxiBtn = document.getElementById('bookTaxiBtn');
+
+    const adminLoginBtn = document.getElementById('adminLoginBtn');
+    const logoutAdminBtn = document.getElementById('logoutAdminBtn');
+    const refreshAdminBtn = document.getElementById('refreshAdminBtn');
+    const loadAllTaxisBtn = document.getElementById('loadAllTaxisBtn');
+    const loadAllDriversBtn = document.getElementById('loadAllDriversBtn');
+    const loadCompletedBookingsBtn = document.getElementById('loadCompletedBookingsBtn');
+    const loadPendingBookingsBtn = document.getElementById('loadPendingBookingsBtn');
+    const addTaxiBtn = document.getElementById('addTaxiBtn');
+    const addDriverBtn = document.getElementById('addDriverBtn');
+
+    const userWelcome = document.getElementById('userWelcome');
+    const userEmail = document.getElementById('userEmail');
+    const userBookingsList = document.getElementById('userBookingsList');
+    const taxiSelect = document.getElementById('taxiSelect');
+    const adminTaxiList = document.getElementById('adminTaxiList');
+    const adminDriverList = document.getElementById('adminDriverList');
+    const adminCompletedList = document.getElementById('adminCompletedList');
+    const adminPendingList = document.getElementById('adminPendingList');
+
+    const userTokenKey = 'taxi_user_token';
+    const adminTokenKey = 'taxi_admin_token';
+
+    function showMessage(text, type = 'success') {
+      messageBox.textContent = text;
+      messageBox.className = 'rounded-xl p-4 text-sm mb-4 ' +
+        (type === 'error'
+          ? 'bg-red-100 text-red-700 border border-red-200'
+          : 'bg-emerald-100 text-emerald-800 border border-emerald-200');
+      messageBox.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => {
+        messageBox.classList.add('hidden');
+      }, 5000);
+    }
+
+    function showSection(sectionName) {
+      const isAdmin = sectionName === 'admin';
+      adminSection.classList.toggle('hidden', !isAdmin);
+      userSection.classList.toggle('hidden', isAdmin);
+      userTabBtn.classList.toggle('bg-blue-600', !isAdmin);
+      userTabBtn.classList.toggle('bg-slate-200', isAdmin);
+      userTabBtn.classList.toggle('text-white', !isAdmin);
+      userTabBtn.classList.toggle('text-slate-700', isAdmin);
+      adminTabBtn.classList.toggle('bg-blue-600', isAdmin);
+      adminTabBtn.classList.toggle('bg-slate-200', !isAdmin);
+      adminTabBtn.classList.toggle('text-white', isAdmin);
+      adminTabBtn.classList.toggle('text-slate-700', !isAdmin);
+    }
+
+    function showLoginCard() {
+      userLoginCard.classList.remove('hidden');
+      userRegisterCard.classList.add('hidden');
+    }
+
+    function showRegisterCard() {
+      userLoginCard.classList.add('hidden');
+      userRegisterCard.classList.remove('hidden');
+    }
+
+    async function setUserDashboard() {
+      const token = localStorage.getItem(userTokenKey);
+      if (!token) {
+        userDashboard.classList.add('hidden');
+        userAuthSection.classList.remove('hidden');
+        return;
+      }
+      try {
+        const profileRes = await fetch(`${API}/auth/me`, {
+          headers: { token },
+        });
+        if (!profileRes.ok) throw new Error('Failed to load user info');
+        const profile = await profileRes.json();
+        userWelcome.textContent = profile.name || profile.email;
+        userEmail.textContent = profile.email || profile.phone;
+        userDashboard.classList.remove('hidden');
+        userAuthSection.classList.add('hidden');
+        await loadTaxiOptions();
+        await loadUserBookings();
+      } catch (err) {
+        localStorage.removeItem(userTokenKey);
+        userDashboard.classList.add('hidden');
+        userAuthSection.classList.remove('hidden');
+      }
+    }
+
+    async function loginUser() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      if (!username || !password) {
+        showMessage('Enter both username and password', 'error');
+        return;
+      }
+      const body = new URLSearchParams();
+      body.append('username', username);
+      body.append('password', password);
+      const res = await fetch(`${API}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showMessage(data.detail || 'Login failed', 'error');
+        return;
+      }
+      localStorage.setItem(userTokenKey, data.access_token);
+      showMessage('User logged in successfully');
+      await setUserDashboard();
+    }
+
+    async function registerUser() {
+      const name = document.getElementById('registerName').value.trim();
+      const phone = document.getElementById('registerPhone').value.trim();
+      const email = document.getElementById('registerEmail').value.trim();
+      const password = document.getElementById('registerPassword').value.trim();
+      if (!name || !phone || !email || !password) {
+        showMessage('Fill all registration fields', 'error');
+        return;
+      }
+      const res = await fetch(`${API}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showMessage(data.detail || 'Registration failed', 'error');
+        return;
+      }
+      showMessage('Registered successfully');
+      await loginUser();
+    }
+
+    function logoutUser() {
+      localStorage.removeItem(userTokenKey);
+      showMessage('User logged out');
+      setUserDashboard();
+    }
+
+    async function loadTaxiOptions() {
+      const res = await fetch(`${API}/taxi/all`);
+      if (!res.ok) {
+        taxiSelect.innerHTML = '<option>Could not load taxis</option>';
+        return;
+      }
+      const taxis = await res.json();
+      if (!taxis.length) {
+        taxiSelect.innerHTML = '<option>No taxis available</option>';
+        return;
+      }
+      taxiSelect.innerHTML = taxis
+        .map((taxi) => `<option value="${taxi.taxi_id}">${taxi.model} (${taxi.status})</option>`)
+        .join('');
+    }
+
+    async function loadUserBookings() {
+      const token = localStorage.getItem(userTokenKey);
+      if (!token) return;
+      const res = await fetch(`${API}/booking/user/me`, {
+        headers: { token },
+      });
+      if (!res.ok) {
+        userBookingsList.innerHTML = '<p class="text-red-600">Unable to load bookings.</p>';
+        return;
+      }
+      const bookings = await res.json();
+      if (!bookings.length) {
+        userBookingsList.innerHTML = '<p class="text-slate-500">No bookings yet.</p>';
+        return;
+      }
+      userBookingsList.innerHTML = bookings
+        .map((booking) => `
+          <div class="rounded-3xl border border-slate-200 p-4 bg-slate-50">
+            <div class="flex flex-wrap gap-4 justify-between">
+              <div>
+                <p class="font-semibold">${booking.source} → ${booking.destination}</p>
+                <p class="text-slate-500 text-sm">Distance: ${booking.distance_km} km</p>
+              </div>
+              <div class="text-right">
+                <p class="font-semibold">₹${booking.fare}</p>
+                <p class="text-slate-500 text-sm">Status: ${booking.payment_status}</p>
+              </div>
+            </div>
+            <p class="mt-3 text-slate-600 text-sm">Booked on: ${new Date(booking.date).toLocaleString()}</p>
+          </div>
+        `)
+        .join('');
+    }
+
+    async function bookTaxi() {
+      const source = document.getElementById('sourceInput').value.trim();
+      const destination = document.getElementById('destinationInput').value.trim();
+      const distance = parseFloat(document.getElementById('distanceInput').value);
+      const taxiId = parseInt(taxiSelect.value, 10);
+      if (!source || !destination || !distance || !taxiId) {
+        showMessage('Fill all booking fields', 'error');
+        return;
+      }
+      const token = localStorage.getItem(userTokenKey);
+      const res = await fetch(`${API}/booking/create`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', token },
+        body: JSON.stringify({ taxi_id: taxiId, source, destination, distance_km: distance }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showMessage(data.detail || 'Booking failed', 'error');
+        return;
+      }
+      showMessage(`Booked successfully. Fare ₹${data.fare}. Driver: ${data.driver_name}`);
+      await loadTaxiOptions();
+      await loadUserBookings();
+    }
+
+    async function setAdminDashboard() {
+      const token = localStorage.getItem(adminTokenKey);
+      if (!token) {
+        adminDashboard.classList.add('hidden');
+        adminAuthSection.classList.remove('hidden');
+        return;
+      }
+      adminDashboard.classList.remove('hidden');
+      adminAuthSection.classList.add('hidden');
+      await loadAdminTaxis();
+      await loadAdminDrivers();
+      await loadCompletedBookings();
+      await loadPendingBookings();
+    }
+
+    async function loginAdmin() {
+      const username = document.getElementById('adminUsername').value.trim();
+      const password = document.getElementById('adminPassword').value.trim();
+      if (!username || !password) {
+        showMessage('Enter admin username and password', 'error');
+        return;
+      }
+      const res = await fetch(`${API}/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showMessage(data.detail || 'Admin login failed', 'error');
+        return;
+      }
+      localStorage.setItem(adminTokenKey, data.admin_token);
+      showMessage('Admin logged in successfully');
+      await setAdminDashboard();
+    }
+
+    function logoutAdmin() {
+      localStorage.removeItem(adminTokenKey);
+      showMessage('Admin logged out');
+      setAdminDashboard();
+    }
+
+    async function loadAdminTaxis() {
+      const res = await fetch(`${API}/admin/taxi/all`);
+      if (!res.ok) {
+        adminTaxiList.innerHTML = '<p class="text-red-600">Unable to load taxis.</p>';
+        return;
+      }
+      const taxis = await res.json();
+      if (!taxis.length) {
+        adminTaxiList.innerHTML = '<p class="text-slate-500">No taxis available.</p>';
+        return;
+      }
+      adminTaxiList.innerHTML = taxis
+        .map((taxi) => `
+          <div class="rounded-3xl border border-slate-200 p-4 bg-slate-50">
+            <p class="font-semibold">ID ${taxi.taxi_id}: ${taxi.model}</p>
+            <p class="text-slate-600 text-sm">Capacity: ${taxi.capacity}, Status: ${taxi.status}</p>
+          </div>
+        `)
+        .join('');
+    }
+
+    async function loadAdminDrivers() {
+      const res = await fetch(`${API}/admin/driver/all`);
+      if (!res.ok) {
+        adminDriverList.innerHTML = '<p class="text-red-600">Unable to load drivers.</p>';
+        return;
+      }
+      const drivers = await res.json();
+      if (!drivers.length) {
+        adminDriverList.innerHTML = '<p class="text-slate-500">No drivers available.</p>';
+        return;
+      }
+      adminDriverList.innerHTML = drivers
+        .map((driver) => `
+          <div class="rounded-3xl border border-slate-200 p-4 bg-slate-50">
+            <p class="font-semibold">${driver.name}</p>
+            <p class="text-slate-600 text-sm">Phone: ${driver.phone}, Taxi ID: ${driver.taxi_id}, Model: ${driver.taxi_model || 'Unknown'}</p>
+          </div>
+        `)
+        .join('');
+    }
+
+    async function loadCompletedBookings() {
+      const token = localStorage.getItem(adminTokenKey);
+      if (!token) {
+        adminCompletedList.innerHTML = '<p class="text-slate-500">Login as admin to see completed bookings.</p>';
+        return;
+      }
+      const res = await fetch(`${API}/admin/bookings/completed`, {
+        headers: { token },
+      });
+      if (!res.ok) {
+        adminCompletedList.innerHTML = '<p class="text-red-600">Unable to load completed bookings.</p>';
+        return;
+      }
+      const bookings = await res.json();
+      if (!bookings.length) {
+        adminCompletedList.innerHTML = '<p class="text-slate-500">No completed bookings yet.</p>';
+        return;
+      }
+      adminCompletedList.innerHTML = bookings
+        .map((booking) => `
+          <div class="rounded-3xl border border-slate-200 p-4 bg-slate-50">
+            <p class="font-semibold">Booking #${booking.booking_id} — ₹${booking.fare}</p>
+            <p class="text-slate-600 text-sm">${booking.source} → ${booking.destination} | ${new Date(booking.date).toLocaleString()}</p>
+            <p class="text-slate-600 text-sm">Customer: ${booking.customer_name} (${booking.customer_phone})</p>
+            <p class="text-slate-600 text-sm">Driver: ${booking.driver_name} (${booking.driver_phone}) | Taxi: ${booking.taxi_model}</p>
+          </div>
+        `)
+        .join('');
+    }
+
+    async function loadPendingBookings() {
+      const token = localStorage.getItem(adminTokenKey);
+      if (!token) {
+        adminPendingList.innerHTML = '<p class="text-slate-500">Login as admin to see pending bookings.</p>';
+        return;
+      }
+      const res = await fetch(`${API}/admin/bookings/pending`, {
+        headers: { token },
+      });
+      if (!res.ok) {
+        adminPendingList.innerHTML = '<p class="text-red-600">Unable to load pending bookings.</p>';
+        return;
+      }
+      const bookings = await res.json();
+      if (!bookings.length) {
+        adminPendingList.innerHTML = '<p class="text-slate-500">No pending bookings at the moment.</p>';
+        return;
+      }
+      adminPendingList.innerHTML = bookings
+        .map((booking) => `
+          <div class="rounded-3xl border border-slate-200 p-4 bg-slate-50">
+            <p class="font-semibold">Booking #${booking.booking_id} — ₹${booking.fare}</p>
+            <p class="text-slate-600 text-sm">${booking.source} → ${booking.destination} | ${new Date(booking.date).toLocaleString()}</p>
+            <p class="text-slate-600 text-sm">Customer: ${booking.customer_name} (${booking.customer_phone})</p>
+            <p class="text-slate-600 text-sm">Driver: ${booking.driver_name} (${booking.driver_phone}) | Taxi: ${booking.taxi_model}</p>
+          </div>
+        `)
+        .join('');
+    }
+
+    async function addTaxi() {
+      const model = document.getElementById('taxiModel').value.trim();
+      const capacity = parseInt(document.getElementById('taxiCapacity').value, 10);
+      const status = document.getElementById('taxiStatus').value;
+      const token = localStorage.getItem(adminTokenKey);
+      if (!model || !capacity || !status) {
+        showMessage('Fill taxi details', 'error');
+        return;
+      }
+      const res = await fetch(`${API}/admin/taxi/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', token },
+        body: JSON.stringify({ model, capacity, status }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showMessage(data.detail || 'Could not add taxi', 'error');
+        return;
+      }
+      showMessage('Taxi added successfully');
+      document.getElementById('taxiModel').value = '';
+      document.getElementById('taxiCapacity').value = '';
+      await loadAdminTaxis();
+    }
+
+    async function addDriver() {
+      const name = document.getElementById('driverName').value.trim();
+      const phone = document.getElementById('driverPhone').value.trim();
+      const taxiId = parseInt(document.getElementById('driverTaxiId').value, 10);
+      const token = localStorage.getItem(adminTokenKey);
+      if (!name || !phone || !taxiId) {
+        showMessage('Fill driver details', 'error');
+        return;
+      }
+      const res = await fetch(`${API}/admin/driver/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', token },
+        body: JSON.stringify({ name, phone, taxi_id: taxiId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showMessage(data.detail || 'Could not add driver', 'error');
+        return;
+      }
+      showMessage('Driver added successfully');
+      document.getElementById('driverName').value = '';
+      document.getElementById('driverPhone').value = '';
+      document.getElementById('driverTaxiId').value = '';
+      await loadAdminDrivers();
+    }
+
+    userTabBtn.addEventListener('click', () => showSection('user'));
+    adminTabBtn.addEventListener('click', () => showSection('admin'));
+    showLoginBtn.addEventListener('click', showLoginCard);
+    showRegisterBtn.addEventListener('click', showRegisterCard);
+    loginUserBtn.addEventListener('click', loginUser);
+    registerUserBtn.addEventListener('click', registerUser);
+    logoutUserBtn.addEventListener('click', logoutUser);
+    refreshBookingsBtn.addEventListener('click', loadUserBookings);
+    bookTaxiBtn.addEventListener('click', bookTaxi);
+    adminLoginBtn.addEventListener('click', loginAdmin);
+    logoutAdminBtn.addEventListener('click', logoutAdmin);
+    refreshAdminBtn.addEventListener('click', setAdminDashboard);
+    loadAllTaxisBtn.addEventListener('click', loadAdminTaxis);
+    loadAllDriversBtn.addEventListener('click', loadAdminDrivers);
+    loadCompletedBookingsBtn.addEventListener('click', loadCompletedBookings);
+    loadPendingBookingsBtn.addEventListener('click', loadPendingBookings);
+    addTaxiBtn.addEventListener('click', addTaxi);
+    addDriverBtn.addEventListener('click', addDriver);
+
+    async function init() {
+      const hash = window.location.hash.replace('#', '');
+      showSection(hash === 'admin' ? 'admin' : 'user');
+      showLoginCard();
+      await setUserDashboard();
+      await setAdminDashboard();
+    }
+
+    init();
+  </script>
+</body>
+</html>

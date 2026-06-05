@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Login</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+
+    <body
+        class="bg-gray-100 flex items-center justify-center min-h-screen px-4"
+    >
+        <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm">
+            <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
+                Login
+            </h2>
+
+            <form id="loginForm" class="space-y-4">
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Email or Phone"
+                    class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    required
+                />
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Password"
+                    class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    required
+                />
+
+                <button
+                    class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition active:scale-95"
+                >
+                    Login
+                </button>
+            </form>
+
+            <p class="mt-4 text-center text-sm">
+                New here?
+                <a
+                    href="register.html"
+                    class="text-blue-600 font-semibold hover:underline"
+                    >Register</a
+                >
+            </p>
+
+            <!-- ERROR BOX -->
+            <p
+                id="errorBox"
+                class="text-red-600 text-center mt-4 text-sm hidden"
+            ></p>
+        </div>
+
+        <script>
+            const API = window.location.origin;
+
+            document
+                .getElementById("loginForm")
+                .addEventListener("submit", async (e) => {
+                    e.preventDefault();
+
+                    const errorBox = document.getElementById("errorBox");
+                    errorBox.classList.add("hidden");
+
+                    const formData = new URLSearchParams();
+                    formData.append(
+                        "username",
+                        document.getElementById("username").value.trim(),
+                    );
+                    formData.append(
+                        "password",
+                        document.getElementById("password").value.trim(),
+                    );
+
+                    const res = await fetch(`${API}/auth/login`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: formData.toString(),
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        errorBox.textContent = data.detail || "Login failed";
+                        errorBox.classList.remove("hidden");
+                        return;
+                    }
+
+                    localStorage.setItem("token", data.access_token);
+
+                    window.location.href = "booking.html";
+                });
+        </script>
+    </body>
+</html>

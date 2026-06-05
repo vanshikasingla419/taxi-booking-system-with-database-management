@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Taxi Management</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+
+    <body class="bg-gray-100 min-h-screen p-6">
+        <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow">
+            <h2 class="text-3xl font-bold mb-6 text-center">Taxi Management</h2>
+
+            <p
+                id="msg"
+                class="text-center text-lg font-semibold mb-4 hidden"
+            ></p>
+
+            <!-- ADD TAXI FORM -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-3">Add Taxi</h3>
+                <form
+                    id="addTaxiForm"
+                    class="grid grid-cols-1 md:grid-cols-3 gap-4"
+                >
+                    <input
+                        id="model"
+                        placeholder="Model"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <input
+                        id="capacity"
+                        type="number"
+                        placeholder="Capacity"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <button
+                        class="bg-blue-600 text-white rounded px-3 py-2 hover:bg-blue-700"
+                    >
+                        Add
+                    </button>
+                </form>
+            </div>
+
+            <!-- UPDATE TAXI FORM -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-3">Update Taxi</h3>
+                <form
+                    id="updateTaxiForm"
+                    class="grid grid-cols-1 md:grid-cols-4 gap-4"
+                >
+                    <input
+                        id="updateId"
+                        type="number"
+                        placeholder="Taxi ID"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <input
+                        id="updateModel"
+                        placeholder="Model"
+                        class="border p-2 rounded"
+                        required
+                    />
+                    <input
+                        id="updateCapacity"
+                        type="number"
+                        placeholder="Capacity"
+                        class="border p-2 rounded"
+                        required
+                    />
+
+                    <button
+                        class="bg-yellow-600 text-white rounded px-3 py-2 hover:bg-yellow-700"
+                    >
+                        Update
+                    </button>
+                </form>
+            </div>
+
+            <!-- DELETE TAXI -->
+            <div class="mb-10">
+                <h3 class="text-xl font-semibold mb-3">Delete Taxi</h3>
+                <form id="deleteTaxiForm" class="flex gap-3">
+                    <input
+                        id="deleteId"
+                        type="number"
+                        placeholder="Taxi ID"
+                        class="border p-2 rounded w-full"
+                        required
+                    />
+                    <button
+                        class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    >
+                        Delete
+                    </button>
+                </form>
+            </div>
+
+            <!-- ALL TAXIS -->
+            <h3 class="text-xl font-semibold mb-3">All Taxis</h3>
+            <div id="taxiList" class="space-y-3"></div>
+        </div>
+
+        <script>
+            const API = window.location.origin;
+            const token = localStorage.getItem("admin_token");
+
+            // ========== Helper: show messages ==========
+            function showMessage(msg, color = "text-green-600") {
+                const m = document.getElementById("msg");
+                m.innerText = msg;
+                m.className = `text-center text-lg font-semibold mb-4 ${color}`;
+                m.classList.remove("hidden");
+                setTimeout(() => m.classList.add("hidden"), 2500);
+            }
+
+            // ========== Verify Admin ==========
+            async function verifyAdmin() {
+                if (!token) {
+                    window.location.href = "admin_login.html";
+                    return;
+                }
+
+                const res = await fetch(`${API}/admin/verify`, {
+                    headers: { token },
+                });
+
+                if (!res.ok) {
+                    localStorage.removeItem("admin_token");
+                    window.location.href = "admin_login.html";
+                }
+            }
+            verifyAdmin();
+
+            // ========== Load all taxis ==========
+            async function loadTaxis() {
+                const res = await fetch(`${API}/admin/taxi/all`, {
+                    headers: { token },
+                });
+
+                const taxis = await res.json();
+
+                const list = document.getElementById("taxiList");
+                list.innerHTML = taxis
+                    .map(
+                        (t) => `
+                    <div class="p-4 bg-gray-100 rounded shadow">
+                        <p><b>ID:</b> ${t.taxi_id}</p>
+                        <p><b>Model:</b> ${t.model}</p>
+                        <p><b>Capacity:</b> ${t.capacity}</p>
+                        <p><b>Status:</b> ${t.status}</p>
+                    </div>
+                `,
+                    )
+                    .join("");
+            }
+
+            // ========== Add Taxi ==========
+            document.getElementById("addTaxiForm").onsubmit = async (e) => {
+                e.preventDefault();
+
+                const payload = {
+                    model: model.value,
+                    capacity: Number(capacity.value),
+                    status: "available",
+                };
+
+                const res = await fetch(`${API}/admin/taxi/add`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        token,
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                const data = await res.json();
+
+                if (res.ok) showMessage("Taxi added successfully");
+                else showMessage(data.detail, "text-red-600");
+
+                loadTaxis();
+            };
+
+            // ========== Update Taxi ==========
+            document.getElementById("updateTaxiForm").onsubmit = async (e) => {
+                e.preventDefault();
+
+                const payload = {
+                    model: updateModel.value,
+                    capacity: Number(updateCapacity.value),
+                    status: "available",
+                };
+
+                const res = await fetch(
+                    `${API}/admin/taxi/update/${updateId.value}`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            token,
+                        },
+                        body: JSON.stringify(payload),
+                    },
+                );
+
+                const data = await res.json();
+
+                if (res.ok) showMessage("Taxi updated successfully");
+                else showMessage(data.detail, "text-red-600");
+
+                loadTaxis();
+            };
+
+            // ========== Delete Taxi ==========
+            document.getElementById("deleteTaxiForm").onsubmit = async (e) => {
+                e.preventDefault();
+
+                const res = await fetch(
+                    `${API}/admin/taxi/delete/${deleteId.value}`,
+                    {
+                        method: "DELETE",
+                        headers: { token },
+                    },
+                );
+
+                const data = await res.json();
+
+                if (res.ok) showMessage("Taxi deleted");
+                else showMessage(data.detail, "text-red-600");
+
+                loadTaxis();
+            };
+
+            loadTaxis();
+        </script>
+    </body>
+</html>
